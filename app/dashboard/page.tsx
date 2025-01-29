@@ -1,20 +1,20 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
-  BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbSeparator,
+  BreadcrumbList,
   BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
 import {
-  SidebarProvider,
   SidebarInset,
+  SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { Separator } from "@radix-ui/react-separator";
+} from "@/components/ui/sidebar"
 
-export default function Home() {
+export default function Page() {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -48,5 +48,5 @@ export default function Home() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }
