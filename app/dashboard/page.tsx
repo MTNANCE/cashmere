@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/layout/app-layout";
 
-export default function Home() {
+export default function Page() {
   const breadcrumbItems = [
     { label: "Building Your Application", href: "#" },
     { label: "Data Fetching", current: true },
