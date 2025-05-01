@@ -15,13 +15,10 @@ import {
 } from "lucide-react";
 
 import { NavMain } from "@/components/layout/nav-main";
-import { NavProjects } from "@/components/layout/nav-projects";
-import { NavUser } from "@/components/layout/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
@@ -79,64 +76,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/dashboard",
       icon: Home,
       isActive: activeMenuItem === "dashboard",
-      items: [
-        {
-          title: "Overview",
-          url: "/dashboard",
-        },
-      ],
     },
     {
       title: "Accounts",
       url: "/accounts",
       icon: CreditCard,
       isActive: activeMenuItem === "accounts",
-      items: [
-        {
-          title: "All Accounts",
-          url: "/accounts",
-        },
-        {
-          title: "Add Account",
-          url: "/accounts/add",
-        },
-      ],
     },
     {
       title: "Transactions",
       url: "/transactions",
       icon: BarChart3,
       isActive: activeMenuItem === "transactions",
-      items: [
-        {
-          title: "Recent Transactions",
-          url: "/transactions",
-        },
-        {
-          title: "Add Transaction",
-          url: "/transactions/add",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      isActive: activeMenuItem === "settings",
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Account",
-          url: "#",
-        },
-        {
-          title: "Notifications",
-          url: "#",
-        },
-      ],
     },
   ];
 
@@ -147,11 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
-        <NavProjects projects={userData.projects} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={userData.user} />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
