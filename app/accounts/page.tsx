@@ -12,8 +12,55 @@ import { AccountSummary } from "@/components/account-summary";
 import { AccountBalanceChart } from "@/components/account-balance-chart";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/layout/page-layout";
+import type { Account } from "@/types/account.types";
 
-export default function AccountsPage() {
+async function getAccounts() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/accounts`, { 
+    cache: 'no-store' 
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch accounts');
+  }
+  
+  const data = await res.json();
+
+  console.log(data);
+
+  return data.accounts as Account[];
+}
+
+async function getBankAccounts() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/accounts?type=bank`, { 
+    cache: 'no-store' 
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch bank accounts');
+  }
+  
+  const data = await res.json();
+  return data.accounts as Account[];
+}
+
+async function getCreditAccounts() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/accounts?type=credit`, { 
+    cache: 'no-store' 
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch credit accounts');
+  }
+  
+  const data = await res.json();
+  return data.accounts as Account[];
+}
+
+export default async function AccountsPage() {
+  const allAccounts = await getAccounts();
+  const bankAccounts = await getBankAccounts();
+  const creditAccounts = await getCreditAccounts();
+
   return (
     <PageLayout>
       <div className="flex flex-col gap-6">
@@ -35,7 +82,6 @@ export default function AccountsPage() {
             <TabsTrigger value="all">All Accounts</TabsTrigger>
             <TabsTrigger value="bank">Bank Accounts</TabsTrigger>
             <TabsTrigger value="credit">Credit Cards</TabsTrigger>
-            <TabsTrigger value="investment">Investments</TabsTrigger>
           </TabsList>
           <TabsContent value="all" className="space-y-4">
             <Card>
@@ -62,40 +108,27 @@ export default function AccountsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">
-                        Checking Account
-                      </CardTitle>
-                      <CardDescription>Bank of America</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">$3,580.25</div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <Button variant="outline" size="sm">
-                        View Transactions
-                      </Button>
-                      <Button size="sm">Transfer</Button>
-                    </CardFooter>
-                  </Card>
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">
-                        Savings Account
-                      </CardTitle>
-                      <CardDescription>Bank of America</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">$8,500.00</div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <Button variant="outline" size="sm">
-                        View Transactions
-                      </Button>
-                      <Button size="sm">Transfer</Button>
-                    </CardFooter>
-                  </Card>
+                  {bankAccounts.map((account) => (
+                    <Card key={account.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">
+                          {account.name}
+                        </CardTitle>
+                        <CardDescription>{account.institution}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">
+                          ${account.balance.toFixed(2)}
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex justify-between">
+                        <Button variant="outline" size="sm">
+                          View Transactions
+                        </Button>
+                        <Button size="sm">Transfer</Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -108,58 +141,30 @@ export default function AccountsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Credit Card</CardTitle>
-                      <CardDescription>Chase</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-red-500">
-                        -$1,250.75
-                      </div>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Available credit: $3,749.25
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <Button variant="outline" size="sm">
-                        View Transactions
-                      </Button>
-                      <Button size="sm">Pay Balance</Button>
-                    </CardFooter>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="investment">
-            <Card>
-              <CardHeader>
-                <CardTitle>Investment Accounts</CardTitle>
-                <CardDescription>Your investment portfolio</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">
-                        Investment Account
-                      </CardTitle>
-                      <CardDescription>Vanguard</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">$15,750.50</div>
-                      <div className="mt-2 text-sm text-green-500">
-                        +$350.25 (2.3%) today
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <Button variant="outline" size="sm">
-                        View Holdings
-                      </Button>
-                      <Button size="sm">Trade</Button>
-                    </CardFooter>
-                  </Card>
+                  {creditAccounts.map((account) => (
+                    <Card key={account.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">
+                          {account.name}
+                        </CardTitle>
+                        <CardDescription>{account.institution}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-red-500">
+                          ${account.balance.toFixed(2)}
+                        </div>
+                        <div className="mt-2 text-sm text-muted-foreground">
+                          Available credit: ${account.availableCredit?.toFixed(2)}
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex justify-between">
+                        <Button variant="outline" size="sm">
+                          View Transactions
+                        </Button>
+                        <Button size="sm">Pay Balance</Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
