@@ -1,0 +1,28 @@
+services:
+  pocketbase:
+    container_name: cashmere_pocketbase
+    build:
+      dockerfile: pocketbase.Dockerfile
+    ports:
+      - "127.0.0.1:8119:8119"
+  
+  app:
+    container_name: cashmere_app
+    #image: node:22-alpine
+    build:
+      dockerfile: node-pnpm.Dockerfile
+    restart: unless-stopped
+    working_dir: /usr/src/app
+    user: "1000:1000"
+    volumes:
+      - .:/usr/src/app
+    command: pnpm dev
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: curl --fail http://localhost:8080
+      interval: 5m
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
