@@ -5,6 +5,11 @@ services:
       dockerfile: pocketbase.Dockerfile
     ports:
       - "127.0.0.1:8119:8119"
+    volumes:
+      - ./pocketbase/data:/pb/pb_data
+      - ./pocketbase/public:/pb/pb_public
+      - ./pocketbase/migrations:/pb/pb_migrations
+      - ./pocketbase/hooks:/pb/pb_hooks
   
   app:
     container_name: cashmere_app
