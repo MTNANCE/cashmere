@@ -25,9 +25,9 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     healthcheck:
-      test: curl --fail http://localhost:8080
-      interval: 5m
-      timeout: 15s
+      test: curl --fail http://localhost:3000
+      interval: 1m
+      timeout: 10s
       retries: 3
       start_period: 30s
       start_interval: 5s
