@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,54 +14,60 @@ import { AccountSummary } from "@/components/account-summary";
 import { AccountBalanceChart } from "@/components/account-balance-chart";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/layout/page-layout";
-import type { Account } from "@/types/account.types";
+import { useAccounts } from "@/hooks/use-accounts";
+import { AccountType } from "@/types/account.types";
 
-async function getAccounts() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/accounts`, { 
-    cache: 'no-store' 
+export default function AccountsPage() {
+  const {
+    data: allAccounts,
+    isLoading: allLoading,
+    error: allError,
+  } = useAccounts();
+  const { data: bankAccounts, isLoading: bankLoading } = useAccounts({
+    type: AccountType.BANK,
   });
-  
-  if (!res.ok) {
-    throw new Error('Failed to fetch accounts');
-  }
-  
-  const data = await res.json();
-
-  console.log(data);
-
-  return data.accounts as Account[];
-}
-
-async function getBankAccounts() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/accounts?type=bank`, { 
-    cache: 'no-store' 
+  const { data: creditAccounts, isLoading: creditLoading } = useAccounts({
+    type: AccountType.CREDIT,
   });
-  
-  if (!res.ok) {
-    throw new Error('Failed to fetch bank accounts');
-  }
-  
-  const data = await res.json();
-  return data.accounts as Account[];
-}
 
-async function getCreditAccounts() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/accounts?type=credit`, { 
-    cache: 'no-store' 
-  });
-  
-  if (!res.ok) {
-    throw new Error('Failed to fetch credit accounts');
+  // Handle loading states
+  if (allLoading || bankLoading || creditLoading) {
+    return (
+      <PageLayout>
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Accounts</h1>
+              <p className="text-muted-foreground">Loading your accounts...</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="h-32 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-32 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-32 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+        </div>
+      </PageLayout>
+    );
   }
-  
-  const data = await res.json();
-  return data.accounts as Account[];
-}
 
-export default async function AccountsPage() {
-  const allAccounts = await getAccounts();
-  const bankAccounts = await getBankAccounts();
-  const creditAccounts = await getCreditAccounts();
+  // Handle error states
+  if (allError) {
+    return (
+      <PageLayout>
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Accounts</h1>
+              <p className="text-red-500">
+                Failed to load accounts: {allError.message}
+              </p>
+            </div>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -79,10 +87,17 @@ export default async function AccountsPage() {
 
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="all">All Accounts</TabsTrigger>
-            <TabsTrigger value="bank">Bank Accounts</TabsTrigger>
-            <TabsTrigger value="credit">Credit Cards</TabsTrigger>
+            <TabsTrigger value="all">
+              All Accounts ({allAccounts?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="bank">
+              Bank Accounts ({bankAccounts?.length || 0})
+            </TabsTrigger>
+            <TabsTrigger value="credit">
+              Credit Cards ({creditAccounts?.length || 0})
+            </TabsTrigger>
           </TabsList>
+
           <TabsContent value="all" className="space-y-4">
             <Card>
               <CardHeader>
@@ -95,9 +110,9 @@ export default async function AccountsPage() {
                 <AccountBalanceChart />
               </CardContent>
             </Card>
-
             <AccountSummary />
           </TabsContent>
+
           <TabsContent value="bank" className="space-y-4">
             <Card>
               <CardHeader>
@@ -107,32 +122,41 @@ export default async function AccountsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {bankAccounts.map((account) => (
-                    <Card key={account.id}>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base">
-                          {account.name}
-                        </CardTitle>
-                        <CardDescription>{account.institution}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold">
-                          ${account.balance.toFixed(2)}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <Button variant="outline" size="sm">
-                          View Transactions
-                        </Button>
-                        <Button size="sm">Transfer</Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
+                {!bankAccounts?.length ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No bank accounts found
+                  </p>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {bankAccounts.map((account) => (
+                      <Card key={account.id}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">
+                            {account.name}
+                          </CardTitle>
+                          <CardDescription>
+                            {account.institution}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold">
+                            ${account.balance.toFixed(2)}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex justify-between">
+                          <Button variant="outline" size="sm">
+                            View Transactions
+                          </Button>
+                          <Button size="sm">Transfer</Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
+
           <TabsContent value="credit">
             <Card>
               <CardHeader>
@@ -140,32 +164,41 @@ export default async function AccountsPage() {
                 <CardDescription>Your credit card accounts</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {creditAccounts.map((account) => (
-                    <Card key={account.id}>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base">
-                          {account.name}
-                        </CardTitle>
-                        <CardDescription>{account.institution}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-red-500">
-                          ${account.balance.toFixed(2)}
-                        </div>
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          Available credit: ${account.availableCredit?.toFixed(2)}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <Button variant="outline" size="sm">
-                          View Transactions
-                        </Button>
-                        <Button size="sm">Pay Balance</Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
+                {!creditAccounts?.length ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No credit cards found
+                  </p>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {creditAccounts.map((account) => (
+                      <Card key={account.id}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">
+                            {account.name}
+                          </CardTitle>
+                          <CardDescription>
+                            {account.institution}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold text-red-500">
+                            ${account.balance.toFixed(2)}
+                          </div>
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            Available credit: $
+                            {account.availableCredit?.toFixed(2)}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex justify-between">
+                          <Button variant="outline" size="sm">
+                            View Transactions
+                          </Button>
+                          <Button size="sm">Pay Balance</Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
