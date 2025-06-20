@@ -47,6 +47,22 @@ export async function POST(request: Request) {
   try {
     const accountData = await request.json();
 
+    // Validate required fields
+    if (!accountData.name || !accountData.type || !accountData.institution) {
+      return NextResponse.json(
+        { error: "Missing required fields: name, type, institution" },
+        { status: 400 }
+      );
+    }
+
+    // Validate balance is a number
+    if (typeof accountData.balance !== 'number') {
+      return NextResponse.json(
+        { error: "Balance must be a number" },
+        { status: 400 }
+      );
+    }
+
     // Use the configured data source
     const dataSource = getDataSource();
     const newAccount = await dataSource.createAccount(accountData);
