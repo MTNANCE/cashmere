@@ -82,7 +82,7 @@ export function useUpdateAccount() {
       ...updates
     }: Partial<Account> & { id: string }) => {
       const data = await fetchApi<{ account: Account }>(`/api/accounts/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(updates),
       });
       return data.account;
