@@ -1,7 +1,9 @@
 import type { Account } from "@/types/account.types";
 
+import { AccountType } from "@/types/account.types";
+
 export interface AccountFilters {
-  type?: string;
+  type?: AccountType;
   institution?: string;
   minBalance?: number;
   maxBalance?: number;
