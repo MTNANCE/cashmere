@@ -52,7 +52,8 @@ export default function AccountsPage() {
   }
 
   // Handle error states
-  if (allError) {
+  const error = allError || bankError || creditError;
+  if (error) {
     return (
       <PageLayout>
         <div className="flex flex-col gap-6">
@@ -60,7 +61,7 @@ export default function AccountsPage() {
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Accounts</h1>
               <p className="text-red-500">
-                Failed to load accounts: {allError.message}
+                Failed to load accounts: {error.message}
               </p>
             </div>
           </div>
