@@ -10,11 +10,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AccountSummary } from "@/components/account-summary";
-import { AccountBalanceChart } from "@/components/account-balance-chart";
+import { AccountSummary, AccountBalanceChart } from "@/domains/account/components";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/layout/page-layout";
-import { useAccounts } from "@/domains/account/hooks/use-accounts";
+import { useAccounts } from "@/hooks/use-accounts";
 import { AccountType } from "@/domains/account/types";
 
 export default function AccountsPage() {

@@ -38,7 +38,7 @@ export function AppLayout({ breadcrumbItems, children }: AppLayoutProps) {
             <Breadcrumb>
               <BreadcrumbList>
                 {breadcrumbItems.map((item, index) => (
-                  <React.Fragment key={index}>
+                  <React.Fragment key={item.label}>
                     {index > 0 && <BreadcrumbSeparator />}
                     <BreadcrumbItem
                       className={index === 0 ? "hidden md:block" : ""}

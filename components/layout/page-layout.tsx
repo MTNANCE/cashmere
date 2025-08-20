@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import type React from "react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { usePage } from "@/lib/contexts/page-context";
 

@@ -8,7 +8,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Overview } from "@/components/overview";
 import { RecentTransactions } from "@/components/recent-transactions";
-import { AccountSummary } from "@/components/account-summary";
+import { AccountSummary } from "@/domains/account/components";
 import { BudgetProgress } from "@/components/budget-progress";
 import { PageLayout } from "@/components/layout/page-layout";
 
