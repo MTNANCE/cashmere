@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Account } from "@/types/account.types";
+import type { Account, AccountFilters } from "@/domains/account/types";
 import { queryKeys } from "@/lib/query-client";
-import type { AccountFilters } from "@/lib/storage/types";
 
 // Simple fetch wrapper - no over-engineering
 async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {

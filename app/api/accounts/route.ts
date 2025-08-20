@@ -1,6 +1,6 @@
+import type { AccountType, AccountFilters } from "@/domains/account/types";
+import { accountService } from "@/domains/account/api/server";
 import { NextResponse } from "next/server";
-import type { Account } from "@/types/account.types";
-import { getDataSource, type AccountFilters } from "@/lib/storage";
 
 export async function GET(request: Request) {
   try {
@@ -10,8 +10,8 @@ export async function GET(request: Request) {
     const filters: AccountFilters = {};
 
     const type = searchParams.get("type");
-    if (type) {
-      filters.type = type;
+    if (type && (type === 'bank' || type === 'credit')) {
+      filters.type = type as AccountType;
     }
 
     const institution = searchParams.get("institution");
@@ -29,9 +29,8 @@ export async function GET(request: Request) {
       filters.maxBalance = Number.parseFloat(maxBalance);
     }
 
-    // Use the configured data source
-    const dataSource = getDataSource();
-    const accounts = await dataSource.getAccounts(filters);
+    // Use domain service
+    const accounts = accountService.getAccounts(filters);
 
     return NextResponse.json({ accounts }, { status: 200 });
   } catch (error) {
@@ -63,9 +62,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Use the configured data source
-    const dataSource = getDataSource();
-    const newAccount = await dataSource.createAccount(accountData);
+    // Use domain service
+    const newAccount = accountService.createAccount(accountData);
 
     return NextResponse.json({ account: newAccount }, { status: 201 });
   } catch (error) {

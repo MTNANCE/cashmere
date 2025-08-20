@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDataSource } from "@/lib/storage";
+import { accountService } from "@/domains/account/api/server";
 
 interface RouteParams {
   params: Promise<{
@@ -11,8 +11,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    const dataSource = getDataSource();
-    const account = await dataSource.getAccount(id);
+    const account = accountService.getAccount(id);
 
     if (!account) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
@@ -33,8 +32,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const updates = await request.json();
 
-    const dataSource = getDataSource();
-    const updatedAccount = await dataSource.updateAccount(id, updates);
+    const updatedAccount = accountService.updateAccount(id, updates);
 
     if (!updatedAccount) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
@@ -54,8 +52,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    const dataSource = getDataSource();
-    const deleted = await dataSource.deleteAccount(id);
+    const deleted = accountService.deleteAccount(id);
 
     if (!deleted) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });

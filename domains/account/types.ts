@@ -13,3 +13,10 @@ export interface Account {
   availableCredit?: number; // Only for credit accounts
   lastUpdated: string;
 }
+
+export interface AccountFilters {
+  type?: AccountType;
+  institution?: string;
+  minBalance?: number;
+  maxBalance?: number;
+}

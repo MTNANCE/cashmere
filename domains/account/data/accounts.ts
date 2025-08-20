@@ -1,5 +1,5 @@
-import type { Account } from '@/types/account.types';
-import { AccountType } from '@/types/account.types';
+import type { Account } from '../types';
+import { AccountType } from '../types';
 
 export const accounts: Account[] = [
   {
@@ -38,4 +38,4 @@ export const accounts: Account[] = [
     availableCredit: 9549.67,
     lastUpdated: "2023-08-01T12:00:00Z"
   }
-]; 
+];

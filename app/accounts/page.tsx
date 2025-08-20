@@ -14,8 +14,8 @@ import { AccountSummary } from "@/components/account-summary";
 import { AccountBalanceChart } from "@/components/account-balance-chart";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/layout/page-layout";
-import { useAccounts } from "@/hooks/use-accounts";
-import { AccountType } from "@/types/account.types";
+import { useAccounts } from "@/domains/account/hooks/use-accounts";
+import { AccountType } from "@/domains/account/types";
 
 export default function AccountsPage() {
   const {
