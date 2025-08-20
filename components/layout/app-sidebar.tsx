@@ -1,20 +1,22 @@
 "use client";
 
-import * as React from "react";
+import type * as React from "react";
 import {
   AudioWaveform,
   Command,
   Frame,
   GalleryVerticalEnd,
-  Map,
+  Map as MapIcon,
   PieChart,
   Settings2,
   Home,
   CreditCard,
   BarChart3,
+  Calculator,
 } from "lucide-react";
 
 import { NavMain } from "@/components/layout/nav-main";
+import { NavCalculators } from "@/components/layout/nav-calculators";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
@@ -23,6 +25,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { usePage } from "@/lib/contexts/page-context";
+import { Separator } from "../ui/separator";
 
 // This is sample data.
 const userData = {
@@ -62,7 +65,7 @@ const userData = {
     {
       name: "Travel",
       url: "#",
-      icon: Map,
+      icon: MapIcon,
     },
   ],
 };
@@ -91,6 +94,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
   ];
 
+  const calculatorItems = [
+    {
+      title: "50-30-20 Budget",
+      url: "/calculators/budget-50-30-20",
+      icon: Calculator,
+      isActive: activeMenuItem === "budget-50-30-20",
+    },
+  ];
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -98,6 +110,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
+        <Separator className="my-2" />
+        <NavCalculators items={calculatorItems} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
