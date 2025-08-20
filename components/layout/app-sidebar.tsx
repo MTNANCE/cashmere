@@ -101,6 +101,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Calculator,
       isActive: activeMenuItem === "budget-50-30-20",
     },
+    {
+      title: "Compound Interest",
+      url: "/calculators/compound-interest",
+      icon: Calculator,
+      isActive: activeMenuItem === "compound-interest",
+    },
   ];
 
   return (

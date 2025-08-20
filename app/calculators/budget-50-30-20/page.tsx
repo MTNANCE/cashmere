@@ -5,6 +5,13 @@ import { PageLayout } from "@/components/layout/page-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
@@ -32,7 +39,7 @@ const chartConfig = {
 
 export default function Budget503020Page() {
   const [income, setIncome] = useState<string>("");
-  const [currency, setCurrency] = useState<string>("$");
+  const [currency, setCurrency] = useState<string>("kr");
   const [results, setResults] = useState<BudgetResult | null>(null);
 
   const calculateBudget = () => {
@@ -132,18 +139,18 @@ export default function Budget503020Page() {
                   step="0.01"
                 />
               </div>
-              <div className="w-24">
+              <div className="w-32">
                 <label htmlFor="currency" className="block text-sm font-medium mb-2">
                   Currency
                 </label>
-                <Input
-                  id="currency"
-                  type="text"
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  placeholder="$"
-                  maxLength={3}
-                />
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kr">NOK (kr)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={calculateBudget} className="mb-0">
                 Calculate
