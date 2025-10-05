@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { accountService } from "@/domains/account/api/server";
+import { getAuthenticatedPB } from "@/lib/pocketbase-server";
 
 interface RouteParams {
   params: Promise<{
@@ -9,9 +10,19 @@ interface RouteParams {
 
 export async function GET(request: Request, { params }: RouteParams) {
   try {
+    const pb = await getAuthenticatedPB();
+    
+    // Check if user is authenticated
+    if (!pb.authStore.isValid) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
-    const account = accountService.getAccount(id);
+    const account = await accountService.getAccount(pb, id);
 
     if (!account) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
@@ -29,10 +40,20 @@ export async function GET(request: Request, { params }: RouteParams) {
 
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
+    const pb = await getAuthenticatedPB();
+    
+    // Check if user is authenticated
+    if (!pb.authStore.isValid) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const updates = await request.json();
 
-    const updatedAccount = accountService.updateAccount(id, updates);
+    const updatedAccount = await accountService.updateAccount(pb, id, updates);
 
     if (!updatedAccount) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
@@ -50,9 +71,19 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
+    const pb = await getAuthenticatedPB();
+    
+    // Check if user is authenticated
+    if (!pb.authStore.isValid) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
-    const deleted = accountService.deleteAccount(id);
+    const deleted = await accountService.deleteAccount(pb, id);
 
     if (!deleted) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });

@@ -1,2 +1,4 @@
-/pocketbase
+# Exclude PocketBase data but keep migrations/hooks for Docker build
+/pocketbase/pb_data
+/pocketbase/pb_public
 /node_modules
