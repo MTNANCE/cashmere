@@ -1,5 +1,27 @@
-import PocketBase from 'pocketbase';
+import PocketBase, { type RecordModel } from 'pocketbase';
 import { cookies } from 'next/headers';
+
+/**
+ * Decode JWT token to extract user ID
+ */
+function decodeJWT(token: string): { id?: string } {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return {};
+    }
+    
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Use Buffer for Node.js environment
+    const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8');
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('[PocketBase Server] Failed to decode JWT:', error);
+    return {};
+  }
+}
 
 /**
  * Get an authenticated PocketBase client for server-side use
@@ -14,8 +36,22 @@ export async function getAuthenticatedPB(): Promise<PocketBase> {
   
   if (authCookie?.value) {
     try {
-      // The cookie contains just the token string
-      pb.authStore.save(authCookie.value, null);
+      const token = authCookie.value;
+      
+      // Decode JWT to get user data
+      const payload = decodeJWT(token);
+      
+      // Create a minimal user record from the JWT payload
+      const userRecord = payload.id ? {
+        id: payload.id,
+        collectionId: '_pb_users_auth_',
+        collectionName: 'users',
+      } as RecordModel : null;
+      
+      // Save the token with the user record
+      pb.authStore.save(token, userRecord);
+      
+      console.log('[PocketBase Server] Auth configured, user ID:', payload.id);
     } catch (error) {
       console.error('[PocketBase Server] Failed to set auth token:', error);
     }

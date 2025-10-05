@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,13 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AccountSummary, AccountBalanceChart } from "@/domains/account/components";
+import { AccountSummary, AccountBalanceChart, AddAccountDialog } from "@/domains/account/components";
 import { Plus } from "lucide-react";
 import { PageLayout } from "@/components/layout/page-layout";
 import { useAccounts } from "@/hooks/use-accounts";
 import { AccountType } from "@/domains/account/types";
 
 export default function AccountsPage() {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const {
     data: allAccounts,
     isLoading: allLoading,
@@ -79,7 +81,7 @@ export default function AccountsPage() {
               Manage your financial accounts
             </p>
           </div>
-          <Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Account
           </Button>
@@ -204,6 +206,11 @@ export default function AccountsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AddAccountDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={setIsAddDialogOpen} 
+      />
     </PageLayout>
   );
 }

@@ -99,14 +99,25 @@ export const accountService = {
   // Create new account
   async createAccount(pb: PocketBase, accountData: Omit<Account, 'id' | 'lastUpdated'>): Promise<Account> {
     try {
+      // Get the authenticated user ID
+      const userId = pb.authStore.record?.id || pb.authStore.model?.id;
+      
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
       const recordData = {
         ...accountToRecordData(accountData),
-        user: pb.authStore.record?.id, // Add authenticated user's ID
+        user: userId, // Add authenticated user's ID
       };
+      
       const record = await pb.collection(PBCollections.ACCOUNTS).create<AccountRecord>(recordData);
       return recordToAccount(record);
     } catch (error) {
       console.error('Error creating account in PocketBase:', error);
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('PocketBase error details:', JSON.stringify(error.response, null, 2));
+      }
       throw error;
     }
   },
