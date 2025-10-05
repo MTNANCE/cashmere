@@ -11,11 +11,13 @@ import { RecentTransactions } from "@/components/recent-transactions";
 import { AccountSummary } from "@/domains/account/components";
 import { BudgetProgress } from "@/components/budget-progress";
 import { PageLayout } from "@/components/layout/page-layout";
+import { ProtectedRoute } from "@/components/protected-route";
 
 export default function Page() {
   return (
-    <PageLayout>
-      <div className="flex flex-col gap-6">
+    <ProtectedRoute>
+      <PageLayout>
+        <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
@@ -108,7 +110,8 @@ export default function Page() {
             <BudgetProgress />
           </TabsContent>
         </Tabs>
-      </div>
-    </PageLayout>
+        </div>
+      </PageLayout>
+    </ProtectedRoute>
   );
 }

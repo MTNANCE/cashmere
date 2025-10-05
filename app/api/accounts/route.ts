@@ -1,9 +1,20 @@
 import type { AccountType, AccountFilters } from "@/domains/account/types";
 import { accountService } from "@/domains/account/api/server";
 import { NextResponse } from "next/server";
+import { getAuthenticatedPB } from "@/lib/pocketbase-server";
 
 export async function GET(request: Request) {
   try {
+    const pb = await getAuthenticatedPB();
+    
+    // Check if user is authenticated
+    if (!pb.authStore.isValid) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
 
     // Build filters from query parameters
@@ -30,7 +41,7 @@ export async function GET(request: Request) {
     }
 
     // Use domain service
-    const accounts = accountService.getAccounts(filters);
+    const accounts = await accountService.getAccounts(pb, filters);
 
     return NextResponse.json({ accounts }, { status: 200 });
   } catch (error) {
@@ -44,6 +55,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const pb = await getAuthenticatedPB();
+    
+    // Check if user is authenticated
+    if (!pb.authStore.isValid) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const accountData = await request.json();
 
     // Validate required fields
@@ -63,7 +84,7 @@ export async function POST(request: Request) {
     }
 
     // Use domain service
-    const newAccount = accountService.createAccount(accountData);
+    const newAccount = await accountService.createAccount(pb, accountData);
 
     return NextResponse.json({ account: newAccount }, { status: 201 });
   } catch (error) {

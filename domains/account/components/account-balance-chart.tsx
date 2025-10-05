@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   Legend,
   ResponsiveContainer,
@@ -10,94 +10,54 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-const data = [
-  {
-    name: "Nov",
-    checking: 2500,
-    savings: 7000,
-    credit: -800,
-    investment: 12000,
-  },
-  {
-    name: "Dec",
-    checking: 2800,
-    savings: 7500,
-    credit: -1100,
-    investment: 13500,
-  },
-  {
-    name: "Jan",
-    checking: 3200,
-    savings: 8000,
-    credit: -950,
-    investment: 14200,
-  },
-  {
-    name: "Feb",
-    checking: 3000,
-    savings: 8200,
-    credit: -1300,
-    investment: 14800,
-  },
-  {
-    name: "Mar",
-    checking: 3400,
-    savings: 8300,
-    credit: -1100,
-    investment: 15200,
-  },
-  {
-    name: "Apr",
-    checking: 3580,
-    savings: 8500,
-    credit: -1250,
-    investment: 15750,
-  },
-];
+import { useAccounts } from "@/hooks/use-accounts";
+import { AccountType } from "@/domains/account/types";
 
 export function AccountBalanceChart() {
+  const { data: accounts, isLoading } = useAccounts();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[350px]">
+        <div className="text-muted-foreground">Loading chart...</div>
+      </div>
+    );
+  }
+
+  if (!accounts?.length) {
+    return (
+      <div className="flex items-center justify-center h-[350px]">
+        <div className="text-center text-muted-foreground">
+          <p className="text-lg font-medium">No accounts to display</p>
+          <p className="text-sm mt-2">Add an account to see your balance overview</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Create chart data from current accounts
+  const chartData = accounts.map((account) => ({
+    name: account.name,
+    balance: account.balance,
+    type: account.type,
+  }));
+
   return (
     <ResponsiveContainer width="100%" height={350}>
-      <AreaChart data={data}>
+      <BarChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis />
-        <Tooltip />
+        <Tooltip 
+          formatter={(value: number) => `$${value.toFixed(2)}`}
+        />
         <Legend />
-        <Area
-          type="monotone"
-          dataKey="checking"
-          name="Checking"
-          stroke="var(--chart-1)"
+        <Bar
+          dataKey="balance"
+          name="Balance"
           fill="var(--chart-1)"
-          fillOpacity={0.2}
         />
-        <Area
-          type="monotone"
-          dataKey="savings"
-          name="Savings"
-          stroke="var(--chart-2)"
-          fill="var(--chart-2)"
-          fillOpacity={0.2}
-        />
-        <Area
-          type="monotone"
-          dataKey="investment"
-          name="Investment"
-          stroke="var(--chart-3)"
-          fill="var(--chart-3)"
-          fillOpacity={0.2}
-        />
-        <Area
-          type="monotone"
-          dataKey="credit"
-          name="Credit Card"
-          stroke="var(--chart-4)"
-          fill="var(--chart-4)"
-          fillOpacity={0.2}
-        />
-      </AreaChart>
+      </BarChart>
     </ResponsiveContainer>
   );
 }

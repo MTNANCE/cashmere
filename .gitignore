@@ -45,4 +45,6 @@ next-env.d.ts
 .vscode
 .idea
 
-/pocketbase
+# PocketBase - ignore data but keep migrations/hooks
+/pocketbase/pb_data
+/pocketbase/pb_public

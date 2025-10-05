@@ -56,6 +56,9 @@ dependencies:
   next:
     specifier: 15.1.0
     version: 15.1.0(react-dom@19.0.0)(react@19.0.0)
+  pocketbase:
+    specifier: ^0.26.2
+    version: 0.26.2
   react:
     specifier: ^19.0.0
     version: 19.0.0
@@ -2410,6 +2413,10 @@ packages:
   /pirates@4.0.6:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
     engines: {node: '>= 6'}
+
+  /pocketbase@0.26.2:
+    resolution: {integrity: sha512-WA8EOBc3QnSJh8rJ3iYoi9DmmPOMFIgVfAmIGux7wwruUEIzXgvrO4u0W2htfQjGIcyezJkdZOy5Xmh7SxAftw==}
+    dev: false
 
   /postcss-import@15.1.0(postcss@8.5.1):
     resolution: {integrity: sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==}
