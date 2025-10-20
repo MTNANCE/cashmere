@@ -21,15 +21,11 @@ import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { usePage } from "@/lib/contexts/page-context";
-import { useAuth } from "@/lib/contexts/auth-context";
 import { Separator } from "../ui/separator";
-import { Button } from "../ui/button";
-import { LogOut } from "lucide-react";
 
 // This is sample data.
 const userData = {
@@ -76,7 +72,6 @@ const userData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { activeMenuItem } = usePage();
-  const { user, logout, isAuthenticated } = useAuth();
 
   const navItems = [
     {
@@ -124,18 +119,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <Separator className="my-2" />
         <NavCalculators items={calculatorItems} />
       </SidebarContent>
-      {isAuthenticated && (
-        <SidebarFooter>
-          <div className="flex items-center justify-between p-2">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{user?.email}</span>
-            </div>
-            <Button variant="ghost" size="icon" onClick={logout}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </SidebarFooter>
-      )}
       <SidebarRail />
     </Sidebar>
   );
