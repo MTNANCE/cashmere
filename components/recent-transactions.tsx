@@ -1,47 +1,62 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-const transactions = [
-  {
-    id: "t1",
-    description: "Grocery Store",
-    amount: -85.25,
-    date: "Today",
-    category: "Food",
-  },
-  {
-    id: "t2",
-    description: "Salary",
-    amount: 4750.0,
-    date: "Yesterday",
-    category: "Income",
-  },
-  {
-    id: "t3",
-    description: "Electric Bill",
-    amount: -120.5,
-    date: "Apr 1",
-    category: "Utilities",
-  },
-  {
-    id: "t4",
-    description: "Restaurant",
-    amount: -45.8,
-    date: "Mar 30",
-    category: "Food",
-  },
-  {
-    id: "t5",
-    description: "Gas Station",
-    amount: -38.25,
-    date: "Mar 29",
-    category: "Transportation",
-  },
-];
+import type { Transaction } from "@/domains/transaction/types";
 
 export function RecentTransactions() {
+  const { data: allTransactions = [], isLoading } = useQuery<Transaction[]>({
+    queryKey: ["transactions"],
+    queryFn: async () => {
+      const response = await fetch("/api/transactions");
+      if (!response.ok) throw new Error("Failed to fetch transactions");
+      const data = await response.json();
+      return data.transactions;
+    },
+  });
+
+  // Get the 5 most recent transactions
+  const transactions = allTransactions.slice(0, 5);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const isToday = date.toDateString() === now.toDateString();
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (isToday) return "Today";
+    if (isYesterday) return "Yesterday";
+    
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-center h-24">
+          <p className="text-sm text-muted-foreground">Loading transactions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-center h-24">
+          <p className="text-sm text-muted-foreground">No transactions found.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -70,7 +85,7 @@ export function RecentTransactions() {
                   {transaction.description}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.category} • {transaction.date}
+                  {transaction.category || "Uncategorized"} • {formatDate(transaction.date)}
                 </p>
               </div>
             </div>
@@ -87,9 +102,11 @@ export function RecentTransactions() {
           </div>
         ))}
       </div>
-      <Button variant="outline" className="w-full">
-        View all transactions
-      </Button>
+      <Link href="/transactions">
+        <Button variant="outline" className="w-full">
+          View all transactions
+        </Button>
+      </Link>
     </div>
   );
 }

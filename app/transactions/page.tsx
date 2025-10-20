@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageLayout } from "@/components/layout/page-layout";
 import {
   ArrowDownIcon,
@@ -8,7 +9,7 @@ import {
   ArrowUpDown,
   Download,
   Filter,
-  // Plus,
+  Plus,
   Upload,
 } from "lucide-react";
 import {
@@ -45,106 +46,50 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import { AddTransactionDialog } from "@/components/add-transaction-dialog"
-
-type Transaction = {
-  id: string;
-  date: string;
-  description: string;
-  category: string;
-  account: string;
-  amount: number;
-};
-
-const data: Transaction[] = [
-  {
-    id: "t1",
-    date: "2025-04-02",
-    description: "Grocery Store",
-    category: "Food",
-    account: "Checking Account",
-    amount: -85.25,
-  },
-  {
-    id: "t2",
-    date: "2025-04-01",
-    description: "Salary",
-    category: "Income",
-    account: "Checking Account",
-    amount: 4750.0,
-  },
-  {
-    id: "t3",
-    date: "2025-04-01",
-    description: "Electric Bill",
-    category: "Utilities",
-    account: "Checking Account",
-    amount: -120.5,
-  },
-  {
-    id: "t4",
-    date: "2025-03-30",
-    description: "Restaurant",
-    category: "Food",
-    account: "Credit Card",
-    amount: -45.8,
-  },
-  {
-    id: "t5",
-    date: "2025-03-29",
-    description: "Gas Station",
-    category: "Transportation",
-    account: "Credit Card",
-    amount: -38.25,
-  },
-  {
-    id: "t6",
-    date: "2025-03-28",
-    description: "Online Shopping",
-    category: "Shopping",
-    account: "Credit Card",
-    amount: -65.99,
-  },
-  {
-    id: "t7",
-    date: "2025-03-27",
-    description: "Coffee Shop",
-    category: "Food",
-    account: "Checking Account",
-    amount: -4.5,
-  },
-  {
-    id: "t8",
-    date: "2025-03-25",
-    description: "Mobile Phone Bill",
-    category: "Utilities",
-    account: "Checking Account",
-    amount: -85.0,
-  },
-  {
-    id: "t9",
-    date: "2025-03-24",
-    description: "Gym Membership",
-    category: "Health & Fitness",
-    account: "Credit Card",
-    amount: -50.0,
-  },
-  {
-    id: "t10",
-    date: "2025-03-20",
-    description: "Interest Payment",
-    category: "Income",
-    account: "Savings Account",
-    amount: 12.5,
-  },
-];
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AddTransactionDialog } from "@/domains/transaction/components";
+import type { Transaction } from "@/domains/transaction/types";
+import type { Account } from "@/domains/account/types";
 
 export default function TransactionsPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-  // const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("all");
+
+  // Fetch accounts for filtering
+  const { data: accounts = [] } = useQuery<Account[]>({
+    queryKey: ["accounts"],
+    queryFn: async () => {
+      const response = await fetch("/api/accounts");
+      if (!response.ok) throw new Error("Failed to fetch accounts");
+      const data = await response.json();
+      return data.accounts;
+    },
+  });
+
+  // Fetch transactions with optional account filter
+  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
+    queryKey: ["transactions", selectedAccountId],
+    queryFn: async () => {
+      const url = selectedAccountId === "all"
+        ? "/api/transactions"
+        : `/api/transactions?accountId=${selectedAccountId}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch transactions");
+      const data = await response.json();
+      return data.transactions;
+    },
+  });
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -185,12 +130,12 @@ export default function TransactionsPage() {
     {
       accessorKey: "category",
       header: "Category",
-      cell: ({ row }) => <div>{row.getValue("category")}</div>,
+      cell: ({ row }) => <div>{row.getValue("category") || "-"}</div>,
     },
     {
-      accessorKey: "account",
+      accessorKey: "accountName",
       header: "Account",
-      cell: ({ row }) => <div>{row.getValue("account")}</div>,
+      cell: ({ row }) => <div>{row.getValue("accountName") || "-"}</div>,
     },
     {
       accessorKey: "amount",
@@ -210,7 +155,7 @@ export default function TransactionsPage() {
         const formatted = new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
-        }).format(amount);
+        }).format(Math.abs(amount));
 
         return (
           <div
@@ -221,7 +166,7 @@ export default function TransactionsPage() {
             {amount < 0 ? (
               <span className="flex items-center justify-end gap-1">
                 <ArrowDownIcon className="h-3 w-3" />
-                {formatted.replace("-", "")}
+                {formatted}
               </span>
             ) : (
               <span className="flex items-center justify-end gap-1">
@@ -236,7 +181,7 @@ export default function TransactionsPage() {
   ];
 
   const table = useReactTable({
-    data,
+    data: transactions,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -273,18 +218,35 @@ export default function TransactionsPage() {
               <Upload className="mr-2 h-4 w-4" />
               Import
             </Button>
-            {/* <Button size="sm" onClick={() => setShowAddTransaction(true)}>
+            <Button size="sm" onClick={() => setShowAddTransaction(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Add Transaction
-            </Button> */}
+            </Button>
           </div>
         </div>
 
         <Card>
           <CardHeader className="pb-1">
             <div className="flex items-center justify-between">
-              <CardTitle>All Transactions</CardTitle>
+              <CardTitle>
+                {selectedAccountId === "all"
+                  ? "All Transactions"
+                  : `Transactions - ${accounts.find(a => a.id === selectedAccountId)?.name || ""}`}
+              </CardTitle>
               <div className="flex items-center gap-2">
+                <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filter by account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Accounts</SelectItem>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input
                   placeholder="Filter transactions..."
                   value={
@@ -311,7 +273,6 @@ export default function TransactionsPage() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Date</DropdownMenuItem>
                     <DropdownMenuItem>Category</DropdownMenuItem>
-                    <DropdownMenuItem>Account</DropdownMenuItem>
                     <DropdownMenuItem>Amount</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -366,7 +327,16 @@ export default function TransactionsPage() {
                   ))}
                 </TableHeader>
                 <TableBody>
-                  {table.getRowModel().rows?.length ? (
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        Loading transactions...
+                      </TableCell>
+                    </TableRow>
+                  ) : table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
                         key={row.id}
@@ -422,7 +392,7 @@ export default function TransactionsPage() {
           </CardContent>
         </Card>
 
-        {/* <AddTransactionDialog open={showAddTransaction} onOpenChange={setShowAddTransaction} /> */}
+        <AddTransactionDialog open={showAddTransaction} onOpenChange={setShowAddTransaction} />
       </div>
     </PageLayout>
   );

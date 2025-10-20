@@ -24,7 +24,7 @@ export interface AccountRecord extends BaseRecord {
   user: string; // ID reference to user
 }
 
-// Transaction record from PocketBase (for future use)
+// Transaction record from PocketBase
 export interface TransactionRecord extends BaseRecord {
   account: string; // ID reference to account
   amount: number;
@@ -32,6 +32,9 @@ export interface TransactionRecord extends BaseRecord {
   category?: string;
   date: string;
   type: 'income' | 'expense';
+  expand?: {
+    account?: AccountRecord;
+  };
 }
 
 // Collection names with type safety

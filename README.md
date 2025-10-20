@@ -27,3 +27,7 @@ Personal finance management app.
 - PocketBase
 - TanStack Query
 - TailwindCSS
+
+## TBC
+docker build --no-cache -t cashmere-pocketbase -f pocketbase.Dockerfile .
+docker run --name cashmere_pocketbase -p 127.0.0.1:8119:8119 cashmere-pocketbase
