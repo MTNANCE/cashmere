@@ -17,7 +17,7 @@ import {
 
 import { NavMain } from "@/components/layout/nav-main";
 import { NavCalculators } from "@/components/layout/nav-calculators";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { PortfolioSwitcher } from "@/components/portfolio-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -81,6 +81,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: activeMenuItem === "dashboard",
     },
     {
+      title: "Portfolios",
+      url: "/portfolios",
+      icon: Settings2,
+      isActive: activeMenuItem === "portfolios",
+    },
+    {
       title: "Accounts",
       url: "/accounts",
       icon: CreditCard,
@@ -112,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={userData.teams} />
+        <PortfolioSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />

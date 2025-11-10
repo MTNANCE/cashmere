@@ -1,26 +1,35 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { Transaction } from "@/domains/transaction/types";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useAccounts } from "@/hooks/use-accounts";
+import { usePortfolioContext } from "@/lib/contexts/portfolio-context";
 
 export function RecentTransactions() {
-  const { data: allTransactions = [], isLoading } = useQuery<Transaction[]>({
-    queryKey: ["transactions"],
-    queryFn: async () => {
-      const response = await fetch("/api/transactions");
-      if (!response.ok) throw new Error("Failed to fetch transactions");
-      const data = await response.json();
-      return data.transactions;
-    },
-  });
+  const { activePortfolio } = usePortfolioContext();
+  const { data: allAccounts = [] } = useAccounts();
+  const { data: allTransactions = [], isLoading } = useTransactions();
+
+  // Filter transactions by active portfolio
+  const portfolioTransactions = useMemo(() => {
+    if (!activePortfolio) return allTransactions;
+    
+    const portfolioAccountIds = new Set(
+      allAccounts
+        .filter(account => account.portfolioId === activePortfolio.id)
+        .map(account => account.id)
+    );
+    
+    return allTransactions.filter(t => portfolioAccountIds.has(t.accountId));
+  }, [allTransactions, allAccounts, activePortfolio]);
 
   // Get the 5 most recent transactions
-  const transactions = allTransactions.slice(0, 5);
+  const transactions = portfolioTransactions.slice(0, 5);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -69,12 +78,12 @@ export function RecentTransactions() {
               <div
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-full",
-                  transaction.amount > 0
+                  transaction.type === 'income'
                     ? "bg-green-100 text-green-600"
                     : "bg-red-100 text-red-600"
                 )}
               >
-                {transaction.amount > 0 ? (
+                {transaction.type === 'income' ? (
                   <ArrowUpIcon className="h-4 w-4" />
                 ) : (
                   <ArrowDownIcon className="h-4 w-4" />
@@ -85,19 +94,19 @@ export function RecentTransactions() {
                   {transaction.description}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {transaction.category || "Uncategorized"} • {formatDate(transaction.date)}
+                  {transaction.accountName || "Unknown"} • {transaction.category || "Uncategorized"} • {formatDate(transaction.date)}
                 </p>
               </div>
             </div>
             <div
               className={cn(
                 "text-sm font-medium",
-                transaction.amount > 0 ? "text-green-600" : "text-red-600"
+                transaction.type === 'income' ? "text-green-600" : "text-red-600"
               )}
             >
-              {transaction.amount > 0
+              {transaction.type === 'income'
                 ? `+$${transaction.amount.toFixed(2)}`
-                : `-$${Math.abs(transaction.amount).toFixed(2)}`}
+                : `-$${transaction.amount.toFixed(2)}`}
             </div>
           </div>
         ))}

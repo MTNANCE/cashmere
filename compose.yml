@@ -6,14 +6,13 @@ services:
     ports:
       - "127.0.0.1:8119:8119"
     volumes:
-      - ./pocketbase/data:/pb/pb_data
-      - ./pocketbase/public:/pb/pb_public
-      - ./pocketbase/migrations:/pb/pb_migrations
-      - ./pocketbase/hooks:/pb/pb_hooks
+      # Use Docker named volumes for data persistence
+      - pocketbase_data:/pb/pb_data
+      - pocketbase_public:/pb/pb_public
+      # Hooks and migrations come from the Docker image
   
   app:
     container_name: cashmere_app
-    #image: node:22-alpine
     build:
       dockerfile: node-pnpm.Dockerfile
     restart: unless-stopped
@@ -21,9 +20,16 @@ services:
     user: "1000:1000"
     volumes:
       - .:/usr/src/app
+      # Cache node_modules in a volume for better performance
+      - node_modules:/usr/src/app/node_modules
     command: pnpm dev
     ports:
       - "127.0.0.1:3000:3000"
+    environment:
+      # When running in Docker, use the service name
+      - NEXT_PUBLIC_POCKETBASE_URL=http://pocketbase:8119
+    depends_on:
+      - pocketbase
     healthcheck:
       test: curl --fail http://localhost:3000
       interval: 1m
@@ -31,3 +37,12 @@ services:
       retries: 3
       start_period: 30s
       start_interval: 5s
+
+# Named volumes for data persistence
+volumes:
+  pocketbase_data:
+    name: cashmere_pocketbase_data
+  pocketbase_public:
+    name: cashmere_pocketbase_public
+  node_modules:
+    name: cashmere_node_modules

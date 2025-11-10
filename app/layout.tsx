@@ -4,6 +4,7 @@ import "./globals.css";
 import { PageContextProvider } from "@/lib/contexts/page-context";
 import { QueryProvider } from "@/lib/query-provider";
 import { AuthProvider } from "@/lib/contexts/auth-context";
+import { PortfolioProvider } from "@/lib/contexts/portfolio-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,9 @@ export default function RootLayout({
       >
         <QueryProvider>
           <AuthProvider>
-            <PageContextProvider>{children}</PageContextProvider>
+            <PortfolioProvider>
+              <PageContextProvider>{children}</PageContextProvider>
+            </PortfolioProvider>
           </AuthProvider>
         </QueryProvider>
       </body>

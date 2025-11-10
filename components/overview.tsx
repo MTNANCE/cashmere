@@ -10,41 +10,65 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-const data = [
-  {
-    name: "Jan",
-    income: 4000,
-    expenses: 2400,
-  },
-  {
-    name: "Feb",
-    income: 3500,
-    expenses: 2210,
-  },
-  {
-    name: "Mar",
-    income: 4500,
-    expenses: 2900,
-  },
-  {
-    name: "Apr",
-    income: 4750,
-    expenses: 2890,
-  },
-  {
-    name: "May",
-    income: 0,
-    expenses: 0,
-  },
-  {
-    name: "Jun",
-    income: 0,
-    expenses: 0,
-  },
-];
+import { useMemo } from "react";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useAccounts } from "@/hooks/use-accounts";
+import { usePortfolioContext } from "@/lib/contexts/portfolio-context";
 
 export function Overview() {
+  const { activePortfolio } = usePortfolioContext();
+  const { data: allAccounts = [] } = useAccounts();
+  const { data: allTransactions = [] } = useTransactions();
+
+  // Filter transactions by active portfolio
+  const portfolioTransactions = useMemo(() => {
+    if (!activePortfolio) return allTransactions;
+    
+    const portfolioAccountIds = new Set(
+      allAccounts
+        .filter(account => account.portfolioId === activePortfolio.id)
+        .map(account => account.id)
+    );
+    
+    return allTransactions.filter(t => portfolioAccountIds.has(t.accountId));
+  }, [allTransactions, allAccounts, activePortfolio]);
+
+  // Aggregate transactions by month (last 6 months)
+  const data = useMemo(() => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const now = new Date();
+    const months: Array<{ name: string; income: number; expenses: number }> = [];
+
+    // Generate last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = monthNames[date.getMonth()];
+      const year = date.getFullYear();
+      const month = date.getMonth();
+
+      const monthTransactions = portfolioTransactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === month && transactionDate.getFullYear() === year;
+      });
+
+      const income = monthTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const expenses = monthTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      months.push({
+        name: monthName,
+        income: Math.round(income * 100) / 100,
+        expenses: Math.round(expenses * 100) / 100,
+      });
+    }
+
+    return months;
+  }, [portfolioTransactions]);
+
   return (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={data}>

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -12,8 +14,53 @@ import { AccountSummary } from "@/domains/account/components";
 import { BudgetProgress } from "@/components/budget-progress";
 import { PageLayout } from "@/components/layout/page-layout";
 import { ProtectedRoute } from "@/components/protected-route";
+import { usePortfolioContext } from "@/lib/contexts/portfolio-context";
+import { useAccounts } from "@/hooks/use-accounts";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useMemo } from "react";
 
 export default function Page() {
+  const { activePortfolio } = usePortfolioContext();
+  const { data: allAccounts = [] } = useAccounts();
+  const { data: allTransactions = [] } = useTransactions();
+
+  // Filter accounts by active portfolio
+  const portfolioAccounts = useMemo(() => {
+    if (!activePortfolio) return allAccounts;
+    return allAccounts.filter(account => account.portfolioId === activePortfolio.id);
+  }, [allAccounts, activePortfolio]);
+
+  // Filter transactions by portfolio accounts
+  const portfolioTransactions = useMemo(() => {
+    const accountIds = new Set(portfolioAccounts.map(a => a.id));
+    return allTransactions.filter(t => accountIds.has(t.accountId));
+  }, [allTransactions, portfolioAccounts]);
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const totalBalance = portfolioAccounts.reduce((sum, account) => sum + account.balance, 0);
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const currentMonthTransactions = portfolioTransactions.filter(t => {
+      const date = new Date(t.date);
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    });
+
+    const income = currentMonthTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const expenses = currentMonthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const savings = income - expenses;
+
+    return { totalBalance, income, expenses, savings };
+  }, [portfolioAccounts, portfolioTransactions]);
+
   return (
     <ProtectedRoute>
       <PageLayout>
@@ -21,7 +68,7 @@ export default function Page() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Your financial overview for April 2025
+            {activePortfolio?.name || "All Portfolios"} - {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </p>
         </div>
 
@@ -33,9 +80,11 @@ export default function Page() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$12,580.25</div>
+              <div className="text-2xl font-bold">
+                ${stats.totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +$1,245.35 from last month
+                Across {portfolioAccounts.length} account{portfolioAccounts.length !== 1 ? 's' : ''}
               </p>
             </CardContent>
           </Card>
@@ -44,9 +93,11 @@ export default function Page() {
               <CardTitle className="text-sm font-medium">Income</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$4,750.00</div>
+              <div className="text-2xl font-bold text-green-600">
+                +${stats.income.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +$250.00 from last month
+                This month
               </p>
             </CardContent>
           </Card>
@@ -55,20 +106,24 @@ export default function Page() {
               <CardTitle className="text-sm font-medium">Expenses</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$2,890.15</div>
+              <div className="text-2xl font-bold text-red-600">
+                -${stats.expenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
               <p className="text-xs text-muted-foreground">
-                -$145.25 from last month
+                This month
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Savings</CardTitle>
+              <CardTitle className="text-sm font-medium">Net</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$1,859.85</div>
+              <div className={`text-2xl font-bold ${stats.savings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {stats.savings >= 0 ? '+' : ''}${stats.savings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +$395.25 from last month
+                This month
               </p>
             </CardContent>
           </Card>

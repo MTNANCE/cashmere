@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
 import { PageLayout } from "@/components/layout/page-layout";
 import {
   ArrowDownIcon,
@@ -55,7 +54,9 @@ import {
 } from "@/components/ui/select";
 import { AddTransactionDialog } from "@/domains/transaction/components";
 import type { Transaction } from "@/domains/transaction/types";
-import type { Account } from "@/domains/account/types";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useAccounts } from "@/hooks/use-accounts";
+import { usePortfolioContext } from "@/lib/contexts/portfolio-context";
 
 export default function TransactionsPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -65,31 +66,27 @@ export default function TransactionsPage() {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("all");
 
-  // Fetch accounts for filtering
-  const { data: accounts = [] } = useQuery<Account[]>({
-    queryKey: ["accounts"],
-    queryFn: async () => {
-      const response = await fetch("/api/accounts");
-      if (!response.ok) throw new Error("Failed to fetch accounts");
-      const data = await response.json();
-      return data.accounts;
-    },
-  });
+  const { activePortfolio } = usePortfolioContext();
+  const { data: allAccounts = [] } = useAccounts();
+  const { data: allTransactions = [], isLoading } = useTransactions();
 
-  // Fetch transactions with optional account filter
-  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
-    queryKey: ["transactions", selectedAccountId],
-    queryFn: async () => {
-      const url = selectedAccountId === "all"
-        ? "/api/transactions"
-        : `/api/transactions?accountId=${selectedAccountId}`;
-      
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch transactions");
-      const data = await response.json();
-      return data.transactions;
-    },
-  });
+  // Filter accounts by portfolio
+  const portfolioAccounts = useMemo(() => {
+    if (!activePortfolio) return allAccounts;
+    return allAccounts.filter(account => account.portfolioId === activePortfolio.id);
+  }, [allAccounts, activePortfolio]);
+
+  // Filter transactions by portfolio and selected account
+  const transactions = useMemo(() => {
+    const portfolioAccountIds = new Set(portfolioAccounts.map(a => a.id));
+    let filtered = allTransactions.filter(t => portfolioAccountIds.has(t.accountId));
+    
+    if (selectedAccountId !== "all") {
+      filtered = filtered.filter(t => t.accountId === selectedAccountId);
+    }
+    
+    return filtered;
+  }, [allTransactions, portfolioAccounts, selectedAccountId]);
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -152,18 +149,19 @@ export default function TransactionsPage() {
       },
       cell: ({ row }) => {
         const amount = Number.parseFloat(row.getValue("amount"));
+        const type = row.original.type;
         const formatted = new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
-        }).format(Math.abs(amount));
+        }).format(amount);
 
         return (
           <div
             className={`text-right font-medium ${
-              amount < 0 ? "text-red-500" : "text-green-500"
+              type === 'expense' ? "text-red-500" : "text-green-500"
             }`}
           >
-            {amount < 0 ? (
+            {type === 'expense' ? (
               <span className="flex items-center justify-end gap-1">
                 <ArrowDownIcon className="h-3 w-3" />
                 {formatted}
@@ -230,8 +228,8 @@ export default function TransactionsPage() {
             <div className="flex items-center justify-between">
               <CardTitle>
                 {selectedAccountId === "all"
-                  ? "All Transactions"
-                  : `Transactions - ${accounts.find(a => a.id === selectedAccountId)?.name || ""}`}
+                  ? `All Transactions - ${activePortfolio?.name || "Portfolio"}`
+                  : `Transactions - ${portfolioAccounts.find(a => a.id === selectedAccountId)?.name || ""}`}
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
@@ -240,7 +238,7 @@ export default function TransactionsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Accounts</SelectItem>
-                    {accounts.map((account) => (
+                    {portfolioAccounts.map((account) => (
                       <SelectItem key={account.id} value={account.id}>
                         {account.name}
                       </SelectItem>

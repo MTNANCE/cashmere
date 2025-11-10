@@ -18,4 +18,6 @@ export const queryKeys = {
   account: (id: string) => ["account", id] as const,
   transactions: ["transactions"] as const,
   transaction: (id: string) => ["transaction", id] as const,
+  portfolios: ["portfolios"] as const,
+  portfolio: (id: string) => ["portfolio", id] as const,
 };

@@ -13,6 +13,7 @@ function recordToAccount(record: AccountRecord): Account {
     balance: record.balance,
     creditLimit: record.credit_limit,
     availableCredit: record.available_credit,
+    portfolioId: record.portfolio,
     lastUpdated: record.updated,
   };
 }
@@ -26,6 +27,7 @@ function accountToRecordData(account: Omit<Account, 'id' | 'lastUpdated'>) {
     balance: account.balance,
     credit_limit: account.creditLimit,
     available_credit: account.availableCredit,
+    portfolio: account.portfolioId,
   };
 }
 
@@ -62,6 +64,10 @@ export const accountService = {
       
       // Apply filters client-side
       let filteredRecords = records;
+      if (filters?.portfolioId) {
+        const portfolioId = filters.portfolioId;
+        filteredRecords = filteredRecords.filter(r => r.portfolio === portfolioId);
+      }
       if (filters?.type) {
         filteredRecords = filteredRecords.filter(r => r.type === filters.type);
       }

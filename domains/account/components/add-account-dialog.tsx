@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AccountType } from "@/domains/account/types";
+import { usePortfolioContext } from "@/lib/contexts/portfolio-context";
 
 interface AddAccountDialogProps {
   open: boolean;
@@ -34,15 +35,18 @@ interface AccountFormData {
   balance: number;
   creditLimit?: number;
   availableCredit?: number;
+  portfolioId: string;
 }
 
 export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) {
   const queryClient = useQueryClient();
+  const { activePortfolio } = usePortfolioContext();
   const [formData, setFormData] = useState<AccountFormData>({
     name: "",
     type: AccountType.BANK,
     institution: "",
     balance: 0,
+    portfolioId: activePortfolio?.id || "",
   });
 
   const createAccountMutation = useMutation({
@@ -72,6 +76,7 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
         type: AccountType.BANK,
         institution: "",
         balance: 0,
+        portfolioId: activePortfolio?.id || "",
       });
       onOpenChange(false);
     },
@@ -79,7 +84,12 @@ export function AddAccountDialog({ open, onOpenChange }: AddAccountDialogProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createAccountMutation.mutate(formData);
+    // Ensure portfolio ID is set
+    const dataToSubmit = {
+      ...formData,
+      portfolioId: formData.portfolioId || activePortfolio?.id || "",
+    };
+    createAccountMutation.mutate(dataToSubmit);
   };
 
   const isCreditCard = formData.type === AccountType.CREDIT;
